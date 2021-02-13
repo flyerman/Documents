@@ -99,6 +99,16 @@ Function Show-Email($to, $subject, $body) {
 }
 
 
+# Function to send an email using Outlook
+Function Send-Email($to, $subject, $body) {
+    $Mail = $Outlook.CreateItem(0)
+    $Mail.To      = '' + $to
+    $Mail.Subject = '' + $subject
+    $Mail.Body    = '' + $body
+    $Mail.Send()
+}
+
+
 # Function to ask for email action
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -173,8 +183,10 @@ Function Show-EmailDialog($to, $subject, $body) {
 
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         # Send
+        Send-Email "$to" "$subject" "$body"
     } elseif ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
         # Send All
+        Send-Email "$to" "$subject" "$body"
     } elseif ($result -eq [System.Windows.Forms.DialogResult]::Retry) {
         # Edit
         Show-Email "$to" "$subject" "$body"
@@ -189,6 +201,7 @@ Function Show-EmailDialog($to, $subject, $body) {
     $result
 }
 
+$sendAll = $false
 
 # Prepare email for each employee
 $employeeTimesheets.GetEnumerator() | ForEach-Object {
@@ -205,9 +218,14 @@ $employeeTimesheets.GetEnumerator() | ForEach-Object {
         $body += "`n    " + $t.DateRange + " (" + $t.Status + ")"
     }
 
-    $result = Show-EmailDialog "$to" "$subject" "$body"
-    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-        # Send All
+    if ($sendAll) {
+        Send-Email "$to" "$subject" "$body"
+    } else {
+        $result = Show-EmailDialog "$to" "$subject" "$body"
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            # Send All
+            $sendAll = $true
+        }
     }
 }
 
@@ -227,9 +245,14 @@ $managerTimesheets.GetEnumerator() | ForEach-Object {
         $body += "`n    " + $t.DateRange + " - " + $t.EmployeeName + " (" + $t.Status + ")"
     }
 
-    $result = Show-EmailDialog "$to" "$subject" "$body"
-    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-        # Send All
+    if ($sendAll) {
+        Send-Email "$to" "$subject" "$body"
+    } else {
+        $result = Show-EmailDialog "$to" "$subject" "$body"
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            # Send All
+            $sendAll = $true
+        }
     }
 }
 
