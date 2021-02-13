@@ -89,8 +89,11 @@ $Outlook = New-Object -ComObject Outlook.Application
 $employeeTimesheets.GetEnumerator() | ForEach-Object {
 
     Write-Output "Employee: " $_.Key
+
     $Mail = $Outlook.CreateItem(0)
-    $Mail.To = $_.Key
+    # Set recipient to employee's short name
+    $_.Key -match '(.+), (\w+)'
+    $Mail.To = $Matches.0
     $Mail.Subject = "REMIDER: Please submit your timesheets"
     $Mail.Body = "Please submit the following timesheets:"
 
@@ -108,8 +111,11 @@ $employeeTimesheets.GetEnumerator() | ForEach-Object {
 $managerTimesheets.GetEnumerator() | ForEach-Object {
 
     Write-Output "Supervisor: " $_.Key
+
     $Mail = $Outlook.CreateItem(0)
-    $Mail.To = $_.Key
+    # Set recipient to supervisor's short name
+    $_.Key -match '(.+), (\w+)'
+    $Mail.To = $Matches.0
     $Mail.Subject = "REMIDER: Please have a look at the missing timesheets"
     $Mail.Body = "Please have a look at the following employee's timesheets:"
 
